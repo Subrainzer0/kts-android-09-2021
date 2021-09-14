@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">MadaraReddit</string>
+
+    <string name="app_name">МадараРеддит</string>
+
+    <string name="app_introduction">Добро пожаловать в приложение Реддит выполненное в стиле Мадары</string>
+
+    <string name="next">Далее</string>
+
 </resources>
