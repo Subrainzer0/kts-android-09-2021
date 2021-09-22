@@ -1,0 +1,9 @@
+<resources>
+
+    <string name="app_name">MadaraReddit</string>
+
+    <string name="app_introduction">Welcome to the Madara style reddit app</string>
+
+    <string name="next">Next</string>
+
+</resources>
