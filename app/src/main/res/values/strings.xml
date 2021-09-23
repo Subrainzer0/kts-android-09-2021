@@ -16,4 +16,8 @@
 
     <string name="invalid_email">"Неверная почта"</string>
 
+    <string name="functions_of_app">В данном приложении вы можете читать новости и ставить лайки к постам</string>
+
+    <string name="press_next_button">Окунитесь в атмосферу данного приложения, нажав кнопку далее</string>
+
 </resources>
