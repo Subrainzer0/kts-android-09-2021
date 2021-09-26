@@ -6,4 +6,10 @@
 
     <string name="next">Далее</string>
 
+    <string name="prompt_email">Почта</string>
+
+    <string name="prompt_password">Пароль</string>
+
+    <string name="action_sign_in">Вход</string>
+
 </resources>
