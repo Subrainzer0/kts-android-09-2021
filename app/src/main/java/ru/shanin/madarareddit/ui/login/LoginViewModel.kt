@@ -19,11 +19,7 @@ class LoginViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel
     }
 
     private fun validateUser(username: String, password: String) {
-        when {
-            !isUserNameValid(username) -> savedStateHandle["validData"] = false
-            !isPasswordValid(password) -> savedStateHandle["validData"] = false
-            else -> savedStateHandle["validData"] = true
-        }
+        savedStateHandle["validData"] = isUserNameValid(username) && isPasswordValid(password)
     }
 
     private fun isUserNameValid(username: String): Boolean {

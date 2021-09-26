@@ -12,8 +12,4 @@
 
     <string name="action_sign_in">Вход</string>
 
-    <string name="invalid_password">Пароль должен быть больше 7 символов</string>
-
-    <string name="invalid_email">"Неверная почта"</string>
-
 </resources>

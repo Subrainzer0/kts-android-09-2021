@@ -12,8 +12,4 @@
 
     <string name="action_sign_in">Sign in</string>
 
-    <string name="invalid_password">Password must be >7 characters</string>
-
-    <string name="invalid_email">"Invalid email"</string>
-
 </resources>
