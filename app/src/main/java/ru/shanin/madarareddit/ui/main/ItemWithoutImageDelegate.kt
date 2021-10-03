@@ -1,44 +1,49 @@
 package ru.shanin.madarareddit.ui.main
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.adapterdelegates4.AbsListItemAdapterDelegate
 import ru.shanin.madarareddit.databinding.ItemWithoutImageBinding
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopWithoutImageModel
+import ru.shanin.madarareddit.utils.extensions.bindingInflate
 
 class ItemWithoutImageDelegate(
-    private val onLikeButtonClick: (item: ItemWithoutImage) -> Unit,
-    private val onItemClick: (item: ItemWithoutImage) -> Unit
-) : AbsListItemAdapterDelegate<Any, Any, ItemWithoutImageDelegate.ViewHolder>() {
+    private val onLikeButtonClick: (item: UiTopWithoutImageModel) -> Unit,
+    private val onItemClick: (item: UiTopWithoutImageModel) -> Unit
+) : AbsListItemAdapterDelegate<UiModelsContainer, UiModelsContainer, ItemWithoutImageDelegate.ViewHolder>() {
 
-    override fun isForViewType(item: Any, items: MutableList<Any>, position: Int): Boolean {
-        return item is ItemWithoutImage
+    override fun isForViewType(
+        item: UiModelsContainer,
+        items: MutableList<UiModelsContainer>,
+        position: Int
+    ): Boolean {
+        return item is UiTopWithoutImageModel
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val itemView = ItemWithoutImageBinding
-            .inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(onLikeButtonClick, onItemClick, itemView)
+        return ViewHolder(onLikeButtonClick, onItemClick, parent.bindingInflate(ItemWithoutImageBinding::inflate))
     }
 
-    override fun onBindViewHolder(item: Any, viewHolder: ViewHolder, payloads: MutableList<Any>) {
-        viewHolder.bind(item as ItemWithoutImage)
+    override fun onBindViewHolder(item: UiModelsContainer, viewHolder: ViewHolder, payloads: MutableList<Any>) {
+        viewHolder.bind(item as UiTopWithoutImageModel)
     }
 
     inner class ViewHolder(
-        private val onLikeButtonClick: (item: ItemWithoutImage) -> Unit,
-        private val onItemClick: (item: ItemWithoutImage) -> Unit,
+        private val onLikeButtonClick: (item: UiTopWithoutImageModel) -> Unit,
+        private val onItemClick: (item: UiTopWithoutImageModel) -> Unit,
         private val binding: ItemWithoutImageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ItemWithoutImage) {
+        fun bind(item: UiTopWithoutImageModel) {
             binding.apply {
-                textContent.text = item.content
-                subreddit.text = item.subreddit
+                textContent.text = item.title
+                subreddit.text = item.subredditNamePrefixed
                 author.text = item.author
-                uuid.text = item.uuid
-                likeCounter.text = item.likeCounter.toString()
-                imageButton.setOnClickListener {
+                uuid.text = item.id
+                likeCounter.text = item.score.toString()
+
+                likeButton.setOnClickListener {
                     onLikeButtonClick(item)
                 }
                 itemWithoutImage.setOnClickListener {

@@ -45,7 +45,7 @@
         app:layout_constraintTop_toTopOf="@+id/authorAnchor" />
 
     <ImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/likeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_like"
@@ -61,9 +61,9 @@
         android:paddingStart="@dimen/spacing_x"
         android:text="0"
         android:textAppearance="@style/Body1.Small"
-        app:layout_constraintBottom_toBottomOf="@+id/imageButton"
-        app:layout_constraintStart_toEndOf="@+id/imageButton"
-        app:layout_constraintTop_toTopOf="@+id/imageButton"
+        app:layout_constraintBottom_toBottomOf="@+id/likeButton"
+        app:layout_constraintStart_toEndOf="@+id/likeButton"
+        app:layout_constraintTop_toTopOf="@+id/likeButton"
         tools:ignore="RtlSymmetry" />
 
     <androidx.constraintlayout.widget.Guideline

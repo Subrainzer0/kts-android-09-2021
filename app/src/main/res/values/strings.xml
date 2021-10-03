@@ -10,10 +10,12 @@
 
     <string name="prompt_password">Пароль</string>
 
-    <string name="action_sign_in">Вход</string>
+    <string name="action_sign_in">Войти с помощью реддит</string>
 
     <string name="functions_of_app">В данном приложении вы можете читать новости и ставить лайки к постам</string>
 
     <string name="press_next_button">Окунитесь в атмосферу данного приложения, нажав кнопку далее</string>
+
+    <string name="auth_canceled">Аутентификация не выполнена</string>
 
 </resources>

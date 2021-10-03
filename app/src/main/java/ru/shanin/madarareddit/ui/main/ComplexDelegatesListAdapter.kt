@@ -1,15 +1,15 @@
 package ru.shanin.madarareddit.ui.main
 
-import android.annotation.SuppressLint
 import androidx.recyclerview.widget.DiffUtil
 import com.hannesdorfmann.adapterdelegates4.AsyncListDifferDelegationAdapter
-import ru.shanin.madarareddit.databinding.ItemComplexBinding
-import ru.shanin.madarareddit.databinding.ItemWithoutImageBinding
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopModel
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopWithoutImageModel
 
 class ComplexDelegatesListAdapter(
-    onLikeButtonClick: (item: Any) -> Unit,
-    onOpenReddit: (item: Any) -> Unit
-) : AsyncListDifferDelegationAdapter<Any>(ComplexDiffCallback()) {
+    onLikeButtonClick: (item: UiModelsContainer) -> Unit,
+    onOpenReddit: (item: UiModelsContainer) -> Unit
+) : AsyncListDifferDelegationAdapter<UiModelsContainer>(ComplexDiffCallback()) {
 
     init {
         delegatesManager
@@ -17,16 +17,16 @@ class ComplexDelegatesListAdapter(
             .addDelegate(ComplexItemDelegate(onLikeButtonClick, onOpenReddit))
     }
 
-    class ComplexDiffCallback : DiffUtil.ItemCallback<Any>() {
-        override fun areItemsTheSame(first: Any, second: Any): Boolean {
+    class ComplexDiffCallback : DiffUtil.ItemCallback<UiModelsContainer>() {
+        override fun areItemsTheSame(first: UiModelsContainer, second: UiModelsContainer): Boolean {
             return first.javaClass == second.javaClass && when (first) {
-                is ItemComplexBinding -> first.uuid == (second as ItemComplexBinding).uuid
-                is ItemWithoutImageBinding -> first.uuid == (second as ItemWithoutImageBinding).uuid
-                else -> true
+                is UiTopModel -> first.id == (second as UiTopModel).id
+                is UiTopWithoutImageModel -> first.id == (second as UiTopWithoutImageModel).id
             }
         }
 
-        @SuppressLint("DiffUtilEquals")
-        override fun areContentsTheSame(first: Any, second: Any): Boolean = first == second
+        override fun areContentsTheSame(first: UiModelsContainer, second: UiModelsContainer): Boolean {
+            return second == first
+        }
     }
 }
