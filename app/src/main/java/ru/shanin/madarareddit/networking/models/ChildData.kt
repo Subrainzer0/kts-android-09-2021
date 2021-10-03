@@ -26,4 +26,7 @@ data class ChildData(
 
     @Json(name = "score")
     val score: Int,
+
+    @Json(name = "likes")
+    val likes: Boolean?
 )

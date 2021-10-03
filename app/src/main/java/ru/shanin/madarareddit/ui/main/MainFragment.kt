@@ -117,27 +117,39 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     private fun updateVoting(item: UiModelsContainer) {
         when (item) {
             is UiTopModel -> {
-                if (!item.isLiked) {
-                    item.isLiked = true
-                    item.score += 1
-                    mainViewModel.vote(item.name,"1")
-                }
-                else {
-                    item.isLiked = false
-                    item.score -= 1
-                    mainViewModel.vote(item.name,"0")
+                when (item.isLiked) {
+                    true -> {
+                        item.isLiked = false
+                        item.score -= 1
+                        mainViewModel.vote(item.name, "0")
+                    }
+                    false -> {
+                        item.isLiked = true
+                        item.score += 1
+                        mainViewModel.vote(item.name, "1")
+                    }
+                    else -> {
+                        item.score += 1
+                        mainViewModel.vote(item.name, "1")
+                    }
                 }
             }
             is UiTopWithoutImageModel -> {
-                if (!item.isLiked) {
-                    item.isLiked = true
-                    item.score += 1
-                    mainViewModel.vote(item.name,"1")
-                }
-                else {
-                    item.isLiked = false
-                    item.score -= 1
-                    mainViewModel.vote(item.name,"0")
+                when (item.isLiked) {
+                    true -> {
+                        item.isLiked = false
+                        item.score -= 1
+                        mainViewModel.vote(item.name, "0")
+                    }
+                    false -> {
+                        item.isLiked = true
+                        item.score += 1
+                        mainViewModel.vote(item.name, "1")
+                    }
+                    else -> {
+                        item.score += 1
+                        mainViewModel.vote(item.name, "1")
+                    }
                 }
             }
         }
