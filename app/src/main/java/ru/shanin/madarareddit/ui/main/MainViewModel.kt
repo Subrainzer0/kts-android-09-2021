@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import ru.shanin.madarareddit.networking.UserRepository
 import ru.shanin.madarareddit.ui.main.mapper.TopToUiMapper
 import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer
-import timber.log.Timber
 
 class MainViewModel : ViewModel() {
 
@@ -48,9 +47,7 @@ class MainViewModel : ViewModel() {
                 isLoadingLiveData.postValue(false)
                 topListLiveData.postValue(it)
             }.onFailure {
-                Timber.d(it.toString())
                 isLoadingLiveData.postValue(false)
-                topListLiveData.postValue(emptyList())
                 errorLiveData.postValue(true)
             }
         }
@@ -67,7 +64,6 @@ class MainViewModel : ViewModel() {
                 TopToUiMapper.topListToUiModel(childList)
             }.onSuccess {
                 isLoadingLiveData.postValue(false)
-                Timber.d(it.toString())
                 loadedTopListLiveData.postValue(it)
             }.onFailure {
                 isLoadingLiveData.postValue(false)

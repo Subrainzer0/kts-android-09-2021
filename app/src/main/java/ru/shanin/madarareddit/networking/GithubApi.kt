@@ -13,8 +13,7 @@ interface GithubApi {
 
     @GET("top")
     suspend fun getTopWithIndex(
-        @Query("after") after: String,
-        @Query("limit") limit: Int
+        @Query("after") after: String
     ): TopModel
 
     @FormUrlEncoded

@@ -9,7 +9,7 @@ class UserRepository {
     }
 
     suspend fun getTopWithIndex(after: String): List<ChildTopModel> {
-        return Networking.githubApi.getTopWithIndex(after,limit = 25).data.children
+        return Networking.githubApi.getTopWithIndex(after).data.children
     }
 
     suspend fun vote(id: String, dir: String) {

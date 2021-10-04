@@ -27,6 +27,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     private val mainViewModel: MainViewModel by viewModels()
 
     private var startedTopList: List<UiModelsContainer> = (emptyList())
+    private var loadTopList: List<UiModelsContainer> = (emptyList())
+    private var fullTopList: List<UiModelsContainer> = (emptyList())
 
     private val binding: FragmentMainBinding by viewBinding()
     private var complexAdapter: ComplexDelegatesListAdapter by autoCleared()
@@ -68,6 +70,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         mainViewModel.topList.observe(viewLifecycleOwner, {
             startedTopList = it
             complexAdapter.items = startedTopList
+            loadTopList = it
+            fullTopList = it
         })
 
         mainViewModel.isLoading.observe(viewLifecycleOwner, { enableControls(it.not()) })
@@ -79,7 +83,15 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         })
 
         mainViewModel.loadedTopList.observe(viewLifecycleOwner, { loadedTopList ->
-            complexAdapter.items = startedTopList + loadedTopList
+            if (loadTopList == loadedTopList) {
+                fullTopList = loadedTopList
+                complexAdapter.items = fullTopList
+            }
+            else {
+                loadTopList = loadedTopList
+                fullTopList = startedTopList + loadTopList
+                complexAdapter.items = fullTopList
+            }
         })
 
         mainViewModel.getTop()
@@ -156,9 +168,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun loadMoreItems() {
-        if (complexAdapter.items.isNotEmpty()) {
-            val lastIndexOfItem = complexAdapter.items.lastIndex
-            val lastId = when (val lastItem = complexAdapter.items[lastIndexOfItem]) {
+        if (fullTopList.isNotEmpty()) {
+            val lastId = when (val lastItem = fullTopList.last()) {
                 is UiTopWithoutImageModel -> lastItem.name
                 is UiTopModel -> lastItem.name
             }
