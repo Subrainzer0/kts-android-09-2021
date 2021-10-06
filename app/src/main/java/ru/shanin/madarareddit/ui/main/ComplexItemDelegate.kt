@@ -33,19 +33,25 @@ class ComplexItemDelegate(
         private val binding: ItemComplexBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentItem: UiTopModel? = null
+
+        init {
+            binding.likeButton.setOnClickListener {
+                currentItem?.let { item -> onLikeButtonClick(item) }
+            }
+            binding.complexItem.setOnClickListener {
+                currentItem?.let { item -> onItemClick(item) }
+            }
+        }
+
         fun bind(item: UiTopModel) {
+            currentItem = item
             binding.apply {
                 textContent.text = item.title
                 subreddit.text = item.subredditNamePrefixed
                 uuid.text = item.id
                 author.text = item.author
                 likeCounter.text = item.score.toString()
-                likeButton.setOnClickListener {
-                    onLikeButtonClick(item)
-                }
-                complexItem.setOnClickListener {
-                    onItemClick(item)
-                }
 
                 Glide.with(itemView)
                     .load(item.link)

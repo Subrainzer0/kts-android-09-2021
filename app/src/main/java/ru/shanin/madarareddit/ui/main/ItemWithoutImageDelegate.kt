@@ -35,19 +35,25 @@ class ItemWithoutImageDelegate(
         private val binding: ItemWithoutImageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentItem: UiTopWithoutImageModel? = null
+
+        init {
+            binding.likeButton.setOnClickListener {
+                currentItem?.let { item -> onLikeButtonClick(item) }
+            }
+            binding.itemWithoutImage.setOnClickListener {
+                currentItem?.let { item -> onItemClick(item) }
+            }
+        }
+
         fun bind(item: UiTopWithoutImageModel) {
+            currentItem = item
             binding.apply {
                 textContent.text = item.title
                 subreddit.text = item.subredditNamePrefixed
                 author.text = item.author
                 uuid.text = item.id
                 likeCounter.text = item.score.toString()
-
-                likeButton.setOnClickListener {
-                    onLikeButtonClick(item)
-                }
-                itemWithoutImage.setOnClickListener {
-                    onItemClick(item)
                 }
             }
         }
