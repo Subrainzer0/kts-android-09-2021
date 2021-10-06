@@ -135,12 +135,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                         item.score -= 1
                         mainViewModel.vote(item.name, "0")
                     }
-                    false -> {
-                        item.isLiked = true
-                        item.score += 1
-                        mainViewModel.vote(item.name, "1")
-                    }
                     else -> {
+                        item.isLiked = true
                         item.score += 1
                         mainViewModel.vote(item.name, "1")
                     }
@@ -153,12 +149,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                         item.score -= 1
                         mainViewModel.vote(item.name, "0")
                     }
-                    false -> {
-                        item.isLiked = true
-                        item.score += 1
-                        mainViewModel.vote(item.name, "1")
-                    }
                     else -> {
+                        item.isLiked = true
                         item.score += 1
                         mainViewModel.vote(item.name, "1")
                     }
