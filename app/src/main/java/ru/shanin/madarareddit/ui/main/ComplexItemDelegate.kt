@@ -1,40 +1,42 @@
 package ru.shanin.madarareddit.ui.main
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.hannesdorfmann.adapterdelegates4.AbsListItemAdapterDelegate
+import ru.shanin.madarareddit.R
 import ru.shanin.madarareddit.databinding.ItemComplexBinding
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer
+import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopModel
+import ru.shanin.madarareddit.utils.extensions.bindingInflate
 
 class ComplexItemDelegate(
-    private val onLikeButtonClick: (item: ComplexItem) -> Unit,
-    private val onItemClick: (item: ComplexItem) -> Unit
-) : AbsListItemAdapterDelegate<Any, Any, ComplexItemDelegate.ViewHolder>() {
+    private val onLikeButtonClick: (item: UiTopModel) -> Unit,
+    private val onItemClick: (item: UiTopModel) -> Unit
+) : AbsListItemAdapterDelegate<UiModelsContainer, UiModelsContainer, ComplexItemDelegate.ViewHolder>() {
 
-    override fun isForViewType(item: Any, items: MutableList<Any>, position: Int): Boolean {
-        return item is ComplexItem
+    override fun isForViewType(item: UiModelsContainer, items: MutableList<UiModelsContainer>, position: Int): Boolean {
+        return item is UiTopModel
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val itemBinding = ItemComplexBinding
-            .inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(onLikeButtonClick, onItemClick, itemBinding)
+        return ViewHolder(onLikeButtonClick, onItemClick, parent.bindingInflate(ItemComplexBinding::inflate))
     }
 
-    override fun onBindViewHolder(item: Any, viewHolder: ViewHolder, payloads: MutableList<Any>) {
-        viewHolder.bind(item as ComplexItem)
+    override fun onBindViewHolder(item: UiModelsContainer, viewHolder: ViewHolder, payloads: MutableList<Any>) {
+        viewHolder.bind(item as UiTopModel)
     }
 
     inner class ViewHolder(
-        private val onLikeButtonClick: (item: ComplexItem) -> Unit,
-        private val onItemClick: (item: ComplexItem) -> Unit,
+        private val onLikeButtonClick: (item: UiTopModel) -> Unit,
+        private val onItemClick: (item: UiTopModel) -> Unit,
         private val binding: ItemComplexBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private var currentItem: ComplexItem? = null
+        private var currentItem: UiTopModel? = null
 
         init {
-            binding.imageButton.setOnClickListener {
+            binding.likeButton.setOnClickListener {
                 currentItem?.let { item -> onLikeButtonClick(item) }
             }
             binding.complexItem.setOnClickListener {
@@ -42,14 +44,19 @@ class ComplexItemDelegate(
             }
         }
 
-        fun bind(item: ComplexItem) {
+        fun bind(item: UiTopModel) {
             currentItem = item
             binding.apply {
-                textContent.text = item.content
-                subreddit.text = item.subreddit
-                uuid.text = item.uuid
+                textContent.text = item.title
+                subreddit.text = item.subredditNamePrefixed
+                uuid.text = item.id
                 author.text = item.author
-                likeCounter.text = item.likeCounter.toString()
+                likeCounter.text = item.score.toString()
+
+                Glide.with(itemView)
+                    .load(item.link)
+                    .placeholder(R.drawable.ic_uchiha)
+                    .into(binding.imageView)
             }
         }
     }

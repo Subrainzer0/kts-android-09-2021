@@ -1,18 +1,17 @@
 package ru.shanin.madarareddit.ui.login
 
+import android.content.Intent
 import android.os.Bundle
-import android.text.InputFilter
-import android.view.View
-import android.view.inputmethod.EditorInfo
-import androidx.core.widget.doAfterTextChanged
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationResponse
 import ru.shanin.madarareddit.R
 import ru.shanin.madarareddit.databinding.FragmentLoginBinding
-import ru.shanin.madarareddit.utils.extensions.hideKeyboard
+import ru.shanin.madarareddit.utils.extensions.toast
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -20,64 +19,45 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private val binding: FragmentLoginBinding by viewBinding()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        bindViewModel()
+    }
 
-        loginViewModel.loginValidData.observe(viewLifecycleOwner,
-            Observer { loginFormState ->
-                if (loginFormState == null) {
-                    return@Observer
-                }
-
-                binding.login.isEnabled = loginFormState
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == AUTH_REQUEST_CODE && data != null) {
+            val tokenExchangeRequest = AuthorizationResponse.fromIntent(data)
+                ?.createTokenExchangeRequest()
+            val exception = AuthorizationException.fromIntent(data)
+            when {
+                tokenExchangeRequest != null && exception == null ->
+                    loginViewModel.onAuthCodeReceived(tokenExchangeRequest)
+                exception != null -> loginViewModel.onAuthCodeFailed(exception)
             }
-        )
-
-        setUsernameTextChangedListener()
-        setPasswordTextChangedListener()
-        setPasswordEditorActionListener()
-        setFilterForWhiteSpace()
-        setOnButtonClickListener()
-    }
-
-    private fun setUsernameTextChangedListener() = with(binding) {
-        username.doAfterTextChanged { text ->
-            val username = text.toString().trim()
-
-            val password = password.text.toString().trim()
-            loginViewModel.loginDataChanged(username, password)
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
-    private fun setPasswordTextChangedListener() = with(binding) {
-        password.doAfterTextChanged { text ->
-            val password = text.toString().trim()
-
-            val username = username.text.toString().trim()
-            loginViewModel.loginDataChanged(username, password)
+    private fun bindViewModel() {
+        binding.login.setOnClickListener { loginViewModel.openLoginPage() }
+        loginViewModel.loadingLiveData.observe(viewLifecycleOwner, ::updateIsLoading)
+        loginViewModel.openAuthPageLiveData.observe(viewLifecycleOwner, ::openAuthPage)
+        loginViewModel.toastLiveData.observe(viewLifecycleOwner, ::toast)
+        loginViewModel.authSuccessLiveData.observe(viewLifecycleOwner) {
+            findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
         }
     }
 
-    private fun setPasswordEditorActionListener() = with(binding) {
-        password.setOnEditorActionListener { _, actionId, _ ->
-
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                activity?.window?.hideKeyboard()
-            }
-            false
-        }
+    private fun updateIsLoading(isLoading: Boolean) = with(binding) {
+        login.isVisible = !isLoading
     }
 
-    private fun setFilterForWhiteSpace() = with(binding) {
-        password.filters = arrayOf(InputFilter { source, _, _, _, _, _ ->
-            source.toString().filterNot { it.isWhitespace() }
-        })
+    private fun openAuthPage(intent: Intent) {
+        startActivityForResult(intent, AUTH_REQUEST_CODE)
     }
 
-    private fun setOnButtonClickListener() = with(binding) {
-        login.setOnClickListener {
-            val action = LoginFragmentDirections.actionLoginFragmentToMainFragment()
-            findNavController().navigate(action)
-        }
+    companion object {
+        private const val AUTH_REQUEST_CODE = 342
     }
 }

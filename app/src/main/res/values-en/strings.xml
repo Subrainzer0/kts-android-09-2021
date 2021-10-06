@@ -10,10 +10,12 @@
 
     <string name="prompt_password">Password</string>
 
-    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in">Sign in with reddit</string>
 
     <string name="functions_of_app">In this app you can see news and like posts</string>
 
     <string name="press_next_button">Enjoy the app by press the next button</string>
+
+    <string name="auth_canceled">Authentication is not completed</string>
 
 </resources>

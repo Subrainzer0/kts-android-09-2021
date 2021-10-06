@@ -3,6 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.shanin.madarareddit">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".MadaraRedditApplication"
         android:allowBackup="true"
