@@ -16,9 +16,9 @@ class ComplexItemDelegate(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val itemView = ItemComplexBinding
+        val itemBinding = ItemComplexBinding
             .inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(onLikeButtonClick, onItemClick, itemView)
+        return ViewHolder(onLikeButtonClick, onItemClick, itemBinding)
     }
 
     override fun onBindViewHolder(item: Any, viewHolder: ViewHolder, payloads: MutableList<Any>) {
@@ -31,19 +31,25 @@ class ComplexItemDelegate(
         private val binding: ItemComplexBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentItem: ComplexItem? = null
+
+        init {
+            binding.imageButton.setOnClickListener {
+                currentItem?.let { item -> onLikeButtonClick(item) }
+            }
+            binding.complexItem.setOnClickListener {
+                currentItem?.let { item -> onItemClick(item) }
+            }
+        }
+
         fun bind(item: ComplexItem) {
+            currentItem = item
             binding.apply {
                 textContent.text = item.content
                 subreddit.text = item.subreddit
                 uuid.text = item.uuid
                 author.text = item.author
                 likeCounter.text = item.likeCounter.toString()
-                imageButton.setOnClickListener {
-                    onLikeButtonClick(item)
-                }
-                complexItem.setOnClickListener {
-                    onItemClick(item)
-                }
             }
         }
     }

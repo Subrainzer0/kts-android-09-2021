@@ -16,9 +16,9 @@ class ItemWithoutImageDelegate(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val itemView = ItemWithoutImageBinding
+        val itemBinding = ItemWithoutImageBinding
             .inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(onLikeButtonClick, onItemClick, itemView)
+        return ViewHolder(onLikeButtonClick, onItemClick, itemBinding)
     }
 
     override fun onBindViewHolder(item: Any, viewHolder: ViewHolder, payloads: MutableList<Any>) {
@@ -31,19 +31,25 @@ class ItemWithoutImageDelegate(
         private val binding: ItemWithoutImageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var currentItem: ItemWithoutImage? = null
+
+        init {
+            binding.imageButton.setOnClickListener {
+                currentItem?.let { item -> onLikeButtonClick(item) }
+            }
+            binding.itemWithoutImage.setOnClickListener {
+                currentItem?.let { item -> onItemClick(item) }
+            }
+        }
+
         fun bind(item: ItemWithoutImage) {
+            currentItem = item
             binding.apply {
                 textContent.text = item.content
                 subreddit.text = item.subreddit
-                author.text = item.author
                 uuid.text = item.uuid
+                author.text = item.author
                 likeCounter.text = item.likeCounter.toString()
-                imageButton.setOnClickListener {
-                    onLikeButtonClick(item)
-                }
-                itemWithoutImage.setOnClickListener {
-                    onItemClick(item)
-                }
             }
         }
     }
