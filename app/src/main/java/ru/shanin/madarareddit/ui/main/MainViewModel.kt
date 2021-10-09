@@ -47,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val isNoNetwork: Flow<Boolean>
         get() = noNetworkFlow.asStateFlow()
 
-    var savedTopList:List<UiModelsContainer> = emptyList()
+    var savedTopList: List<UiModelsContainer> = emptyList()
 
     fun getTop(before: String? = null, after: String? = null, count: Int? = 0) {
         loadingMoreItemsJob?.cancel()
