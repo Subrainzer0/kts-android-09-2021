@@ -7,4 +7,10 @@ import com.squareup.moshi.JsonClass
 data class TopData (
     @Json(name = "children")
     val children: List<ChildTopModel>,
+
+    @Json(name = "after")
+    val after: String?,
+
+    @Json(name = "before")
+    val before: String?,
 )

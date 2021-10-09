@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.flow.collect
+import retrofit2.HttpException
 import ru.shanin.madarareddit.R
 import ru.shanin.madarareddit.databinding.FragmentMainBinding
 import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer
@@ -20,15 +22,13 @@ import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopModel
 import ru.shanin.madarareddit.ui.main.mapper.UiModelsContainer.UiTopWithoutImageModel
 import ru.shanin.madarareddit.utils.PaginationScrollListener
 import ru.shanin.madarareddit.utils.autoCleared
+import ru.shanin.madarareddit.utils.extensions.launchOnStartedState
 import timber.log.Timber
+import java.net.SocketException
 
 class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val mainViewModel: MainViewModel by viewModels()
-
-    private var startedTopList: List<UiModelsContainer> = (emptyList())
-    private var loadTopList: List<UiModelsContainer> = (emptyList())
-    private var fullTopList: List<UiModelsContainer> = (emptyList())
 
     private val binding: FragmentMainBinding by viewBinding()
     private var complexAdapter: ComplexDelegatesListAdapter by autoCleared()
@@ -36,7 +36,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initList()
+        mainViewModel.checkNetworkState()
         bindViewModel()
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            loadMoreItems()
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -58,6 +64,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 PaginationScrollListener(
                     layoutManager = layoutManager as LinearLayoutManager,
                     requestNextItems = ::loadMoreItems,
+                    visibilityThreshold = 2
                 )
             )
 
@@ -67,39 +74,52 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun bindViewModel() {
-        mainViewModel.topList.observe(viewLifecycleOwner, {
-            startedTopList = it
-            complexAdapter.items = startedTopList
-            loadTopList = it
-            fullTopList = it
-        })
 
-        mainViewModel.isLoading.observe(viewLifecycleOwner, { enableControls(it.not()) })
+        viewLifecycleOwner.launchOnStartedState {
+            mainViewModel.isLoading.collect { enableControls(it.not()) }
+        }
 
-        mainViewModel.isError.observe(viewLifecycleOwner, { isError ->
-            if (isError) {
-                showError()
+        viewLifecycleOwner.launchOnStartedState {
+            mainViewModel.isNoNetwork.collect { checkNetworkState(it) }
+        }
+
+        viewLifecycleOwner.launchOnStartedState {
+            mainViewModel.isError.collect { isError ->
+                when (isError) {
+                    is SocketException,
+                    is HttpException -> showError()
+                }
             }
-        })
+        }
 
-        mainViewModel.loadedTopList.observe(viewLifecycleOwner, { loadedTopList ->
-            if (loadTopList == loadedTopList) {
-                fullTopList = loadedTopList
-                complexAdapter.items = fullTopList
+        viewLifecycleOwner.launchOnStartedState {
+            mainViewModel.topList.collect { list ->
+                val loadedList = list - mainViewModel.savedTopList
+                mainViewModel.savedTopList = mainViewModel.savedTopList + loadedList
+                complexAdapter.items = mainViewModel.savedTopList
             }
-            else {
-                loadTopList = loadedTopList
-                fullTopList = startedTopList + loadTopList
-                complexAdapter.items = fullTopList
-            }
-        })
+        }
 
-        mainViewModel.getTop()
+        if (mainViewModel.savedTopList.isNotEmpty()) {
+            val firstId = when (val firstItem = mainViewModel.savedTopList.first()) {
+                is UiTopWithoutImageModel -> firstItem.name
+                is UiTopModel -> firstItem.name
+            }
+            mainViewModel.getTop(firstId)
+        }
+        else {
+            mainViewModel.getTop()
+        }
+
     }
 
     private fun enableControls(enable: Boolean) = with(binding) {
         list.isVisible = enable
         shimmerLayout.isVisible = !enable
+    }
+
+    private fun checkNetworkState(isVisible: Boolean) = with(binding) {
+        noNetworkTextView.isVisible = isVisible
     }
 
     private fun showError() = with(binding) {
@@ -160,13 +180,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun loadMoreItems() {
-        if (fullTopList.isNotEmpty()) {
-            val lastId = when (val lastItem = fullTopList.last()) {
+        if (mainViewModel.savedTopList.isNotEmpty()) {
+            val lastId = when (val lastItem = mainViewModel.savedTopList.last()) {
                 is UiTopWithoutImageModel -> lastItem.name
                 is UiTopModel -> lastItem.name
             }
 
-            mainViewModel.getTopWithIndex(lastId)
+            mainViewModel.getTop(after = lastId, count = mainViewModel.savedTopList.size)
         }
         else {
             mainViewModel.getTop()

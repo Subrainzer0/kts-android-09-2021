@@ -18,4 +18,6 @@
 
     <string name="auth_canceled">Аутентификация не выполнена</string>
 
+    <string name="no_network">Нет сети</string>
+
 </resources>

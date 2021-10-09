@@ -1,16 +1,15 @@
 package ru.shanin.madarareddit.networking
 
-import ru.shanin.madarareddit.networking.models.ChildTopModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import ru.shanin.madarareddit.networking.models.TopData
 
 class UserRepository {
 
-    suspend fun getTop(): List<ChildTopModel> {
-        return Networking.githubApi.getTop().data.children
+    fun getTopWithIndex(before: String?, after: String?, count: Int?): Flow<TopData> = flow {
+        emit(Networking.githubApi.getTopWithIndex(before, after, count).data)
     }
 
-    suspend fun getTopWithIndex(after: String): List<ChildTopModel> {
-        return Networking.githubApi.getTopWithIndex(after).data.children
-    }
 
     suspend fun vote(id: String, dir: String) {
         return Networking.githubApi.vote(id, dir)

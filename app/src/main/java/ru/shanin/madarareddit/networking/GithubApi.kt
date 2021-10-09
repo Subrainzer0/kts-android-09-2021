@@ -8,12 +8,13 @@ import retrofit2.http.Query
 import ru.shanin.madarareddit.networking.models.TopModel
 
 interface GithubApi {
-    @GET("top")
-    suspend fun getTop(): TopModel
 
     @GET("top")
     suspend fun getTopWithIndex(
-        @Query("after") after: String
+        @Query("before") before: String?,
+        @Query("after") after: String?,
+        @Query("count") count: Int?,
+        @Query("limit") limit: Int = 10
     ): TopModel
 
     @FormUrlEncoded
