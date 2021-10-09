@@ -18,4 +18,6 @@
 
     <string name="auth_canceled">Authentication is not completed</string>
 
+    <string name="no_network">No network</string>
+
 </resources>

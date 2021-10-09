@@ -7,10 +7,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
+import kotlinx.coroutines.flow.collect
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import ru.shanin.madarareddit.R
 import ru.shanin.madarareddit.databinding.FragmentLoginBinding
+import ru.shanin.madarareddit.utils.extensions.launchOnStartedState
 import ru.shanin.madarareddit.utils.extensions.toast
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
@@ -32,20 +34,37 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             when {
                 tokenExchangeRequest != null && exception == null ->
                     loginViewModel.onAuthCodeReceived(tokenExchangeRequest)
-                exception != null -> loginViewModel.onAuthCodeFailed(exception)
+                exception != null -> {
+                    viewLifecycleOwner.launchOnStartedState {
+                        loginViewModel.onAuthCodeFailed(exception)
+                    }
+                }
             }
-        } else {
+        }
+        else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
     private fun bindViewModel() {
-        binding.login.setOnClickListener { loginViewModel.openLoginPage() }
-        loginViewModel.loadingLiveData.observe(viewLifecycleOwner, ::updateIsLoading)
-        loginViewModel.openAuthPageLiveData.observe(viewLifecycleOwner, ::openAuthPage)
-        loginViewModel.toastLiveData.observe(viewLifecycleOwner, ::toast)
-        loginViewModel.authSuccessLiveData.observe(viewLifecycleOwner) {
-            findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
+        binding.login.setOnClickListener {
+            viewLifecycleOwner.launchOnStartedState {
+                loginViewModel.openLoginPage()
+            }
+        }
+        viewLifecycleOwner.launchOnStartedState {
+            loginViewModel.loadingLiveData.collect { updateIsLoading(it) }
+        }
+        viewLifecycleOwner.launchOnStartedState {
+            loginViewModel.openAuthPageLiveData.collect { openAuthPage(it) }
+        }
+        viewLifecycleOwner.launchOnStartedState {
+            loginViewModel.toastLiveData.collect { toast(it) }
+        }
+        viewLifecycleOwner.launchOnStartedState {
+            loginViewModel.authSuccessLiveData.collect {
+                findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
+            }
         }
     }
 

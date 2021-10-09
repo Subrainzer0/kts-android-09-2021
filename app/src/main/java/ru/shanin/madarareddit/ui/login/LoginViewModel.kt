@@ -5,57 +5,65 @@ import android.content.Intent
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.TokenRequest
 import ru.shanin.madarareddit.R
 import ru.shanin.madarareddit.data.AuthRepository
-import ru.shanin.madarareddit.utils.SingleLiveEvent
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val authRepository = AuthRepository()
     private val authService: AuthorizationService = AuthorizationService(getApplication())
-    private val openAuthPageLiveEvent = SingleLiveEvent<Intent>()
-    private val toastLiveEvent = SingleLiveEvent<Int>()
-    private val loadingMutableLiveData = MutableLiveData(false)
-    private val authSuccessLiveEvent = SingleLiveEvent<Unit>()
+    private val openAuthPageLiveEvent = Channel<Intent>(Channel.BUFFERED)
+    private val toastLiveEvent = Channel<Int>(Channel.BUFFERED)
+    private val loadingMutableLiveData = MutableStateFlow(false)
+    private val authSuccessLiveEvent = Channel<Unit>(Channel.BUFFERED)
 
-    val openAuthPageLiveData: LiveData<Intent>
-        get() = openAuthPageLiveEvent
+    val openAuthPageLiveData: Flow<Intent>
+        get() = openAuthPageLiveEvent.receiveAsFlow()
 
-    val loadingLiveData: LiveData<Boolean>
+    val loadingLiveData: StateFlow<Boolean>
         get() = loadingMutableLiveData
 
-    val toastLiveData: LiveData<Int>
-        get() = toastLiveEvent
+    val toastLiveData: Flow<Int>
+        get() = toastLiveEvent.receiveAsFlow()
 
-    val authSuccessLiveData: LiveData<Unit>
-        get() = authSuccessLiveEvent
+    val authSuccessLiveData: Flow<Unit>
+        get() = authSuccessLiveEvent.receiveAsFlow()
 
-    fun onAuthCodeFailed(exception: AuthorizationException) {
-        toastLiveEvent.postValue(R.string.auth_canceled)
+    suspend fun onAuthCodeFailed(exception: AuthorizationException) {
+        toastLiveEvent.send(R.string.auth_canceled)
     }
 
     fun onAuthCodeReceived(tokenRequest: TokenRequest) {
-        loadingMutableLiveData.postValue(true)
+        loadingMutableLiveData.value = true
         authRepository.performTokenRequest(
             authService = authService,
             tokenRequest = tokenRequest,
             onComplete = {
-                loadingMutableLiveData.postValue(false)
-                authSuccessLiveEvent.postValue(Unit)
+                viewModelScope.launch {
+                    loadingMutableLiveData.value = false
+                    authSuccessLiveEvent.send(Unit)
+                }
             },
             onError = {
-                loadingMutableLiveData.postValue(false)
-                toastLiveEvent.postValue(R.string.auth_canceled)
+                viewModelScope.launch {
+                    loadingMutableLiveData.value = false
+                    toastLiveEvent.send(R.string.auth_canceled)
+                }
             }
         )
     }
 
-    fun openLoginPage() {
+    suspend fun openLoginPage() {
         val customTabsIntent = CustomTabsIntent.Builder()
             .setToolbarColor(ContextCompat.getColor(getApplication(), R.color.dark_blue))
             .build()
@@ -65,7 +73,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             customTabsIntent
         )
 
-        openAuthPageLiveEvent.postValue(openAuthPageIntent)
+        openAuthPageLiveEvent.send(openAuthPageIntent)
     }
 
     override fun onCleared() {
