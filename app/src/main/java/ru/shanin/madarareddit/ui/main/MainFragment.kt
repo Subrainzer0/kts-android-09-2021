@@ -30,10 +30,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val mainViewModel: MainViewModel by viewModels()
 
-    private var startedTopList: List<UiModelsContainer> = (emptyList())
-    private var loadTopList: List<UiModelsContainer> = (emptyList())
-    private var fullTopList: List<UiModelsContainer> = (emptyList())
-
     private val binding: FragmentMainBinding by viewBinding()
     private var complexAdapter: ComplexDelegatesListAdapter by autoCleared()
 
@@ -44,7 +40,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         bindViewModel()
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            fullTopList = emptyList()
             loadMoreItems()
             binding.swipeRefreshLayout.isRefreshing = false
         }
@@ -69,6 +64,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 PaginationScrollListener(
                     layoutManager = layoutManager as LinearLayoutManager,
                     requestNextItems = ::loadMoreItems,
+                    visibilityThreshold = 2
                 )
             )
 
@@ -78,15 +74,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun bindViewModel() {
-        viewLifecycleOwner.launchOnStartedState {
-            mainViewModel.topList
-                .collect {
-                    startedTopList = it
-                    complexAdapter.items = startedTopList
-                    loadTopList = it
-                    fullTopList = it
-                }
-        }
 
         viewLifecycleOwner.launchOnStartedState {
             mainViewModel.isLoading.collect { enableControls(it.not()) }
@@ -106,20 +93,24 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
 
         viewLifecycleOwner.launchOnStartedState {
-            mainViewModel.loadedTopList.collect { loadedTopList ->
-                if (loadTopList != loadedTopList && loadedTopList.isNotEmpty()) {
-                    fullTopList = loadedTopList
-                    complexAdapter.items = fullTopList
-                }
-                else {
-                    loadTopList = loadedTopList
-                    fullTopList = startedTopList + loadTopList
-                    complexAdapter.items = fullTopList
-                }
+            mainViewModel.topList.collect { list ->
+                val loadedList = list - mainViewModel.savedTopList
+                mainViewModel.savedTopList = mainViewModel.savedTopList + loadedList
+                complexAdapter.items = mainViewModel.savedTopList
             }
         }
 
-        mainViewModel.getTop()
+        if (mainViewModel.savedTopList.isNotEmpty()) {
+            val firstId = when (val firstItem = mainViewModel.savedTopList.first()) {
+                is UiTopWithoutImageModel -> firstItem.name
+                is UiTopModel -> firstItem.name
+            }
+            mainViewModel.getTop(firstId)
+        }
+        else {
+            mainViewModel.getTop()
+        }
+
     }
 
     private fun enableControls(enable: Boolean) = with(binding) {
@@ -189,13 +180,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun loadMoreItems() {
-        if (fullTopList.isNotEmpty()) {
-            val lastId = when (val lastItem = fullTopList.last()) {
+        if (mainViewModel.savedTopList.isNotEmpty()) {
+            val lastId = when (val lastItem = mainViewModel.savedTopList.last()) {
                 is UiTopWithoutImageModel -> lastItem.name
                 is UiTopModel -> lastItem.name
             }
 
-            mainViewModel.getTopWithIndex(lastId)
+            mainViewModel.getTop(after = lastId, count = mainViewModel.savedTopList.size)
         }
         else {
             mainViewModel.getTop()

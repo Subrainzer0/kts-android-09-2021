@@ -28,20 +28,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = UserRepository()
 
-    private val topListFlow = MutableStateFlow<List<UiModelsContainer>>(emptyList())
     private val isLoadingFlow = MutableStateFlow(false)
     private val errorFlow = MutableStateFlow<Throwable?>(null)
     private val loadedTopListFlow = MutableStateFlow<List<UiModelsContainer>>(emptyList())
     private val noNetworkFlow = MutableStateFlow(false)
 
-    private var startedLoadingItemsJob: Job? = null
-
     private var loadingMoreItemsJob: Job? = null
 
     val topList: Flow<List<UiModelsContainer>>
-        get() = topListFlow.asStateFlow()
-
-    val loadedTopList: Flow<List<UiModelsContainer>>
         get() = loadedTopListFlow.asStateFlow()
 
     val isLoading: Flow<Boolean>
@@ -51,36 +45,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         get() = errorFlow.asStateFlow()
 
     val isNoNetwork: Flow<Boolean>
-    get() = noNetworkFlow.asStateFlow()
+        get() = noNetworkFlow.asStateFlow()
 
-    fun getTop() {
-        startedLoadingItemsJob = viewModelScope.launch {
-            isLoadingFlow.value = true
-            delay(2000)
-            repository.getTop()
-                .flowOn(Dispatchers.IO)
-                .map { topList -> topList.map { it.data } }
-                .catch { throwable ->
-                    isLoadingFlow.value = false
-                    errorFlow.value = throwable
-                }
-                .flowOn(Dispatchers.Main)
-                .collect { childDataList ->
-                    isLoadingFlow.value = false
-                    val convertedList = TopToUiMapper.topListToUiModel(childDataList)
-                    topListFlow.value = convertedList
-                }
-        }
-    }
+    var savedTopList:List<UiModelsContainer> = emptyList()
 
-    fun getTopWithIndex(after: String) {
+    fun getTop(before: String? = null, after: String? = null, count: Int? = 0) {
         loadingMoreItemsJob?.cancel()
         loadingMoreItemsJob = viewModelScope.launch {
             isLoadingFlow.value = true
             delay(2000)
-            repository.getTopWithIndex(after)
+            repository.getTopWithIndex(before, after, count)
                 .flowOn(Dispatchers.IO)
-                .map { topList -> topList.map { it.data } }
+                .map { topData ->
+                    topData.children
+                }
+                .map { topChildList -> topChildList.map { it.data } }
                 .catch { throwable ->
                     isLoadingFlow.value = false
                     errorFlow.value = throwable
